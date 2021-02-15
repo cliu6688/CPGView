@@ -4,7 +4,7 @@ use strict;
 use FindBin qw($Bin);
 use Cwd 'abs_path';
 
-my $file_gb        = shift;
+my $file_in        = shift;
 my $projectid      = shift;
 my $workingdir_rel = shift;
 #my $file_trf       = shift;
@@ -12,7 +12,7 @@ my $workingdir_rel = shift;
 #my $file_vmatch    = shift;
 #my $file_ir      = shift;
 
-die "\n\nUsage: $0 file_gb projectid workingdir\n\nExample run: perl $0 test/example.gb 1234 /tmp/o1\n\n " unless (-e $file_gb && $projectid ne "" && $workingdir_rel ne "");
+die "\n\nUsage: $0 file_gb projectid workingdir\n\nExample run: perl $0 (gb:NC_000932 or test/example.gb) 1234 /tmp/o1\n\n " unless ((-e $file_in || $file_in =~ /gb:/) && $projectid ne "" && $workingdir_rel ne "");
 
 =begin comments
 if ($projectid eq "") {
@@ -28,7 +28,8 @@ if ($workingdir_rel eq "") {
 $workingdir_rel  =~ s/\/+$//;
 my $workingdir   = abs_path ($workingdir_rel);
 `mkdir $workingdir` unless (-e $workingdir);
-my $file_fas     = $workingdir."/".$projectid."fas";
+my $file_gb      = $workingdir."/".$projectid.".gb";
+my $file_fas     = $workingdir."/".$projectid.".fas";
 my $file_image1  = $workingdir."/".$projectid."_image1";
 my $file_image2  = $workingdir."/".$projectid."_image2.png";
 my $file_image3  = $workingdir."/".$projectid."_image3.png";
@@ -52,8 +53,17 @@ my $file_circos_cc       = $workingdir."/".$projectid."_c_cc.txt";
 #my $drawgenemap = $Bin."/GeneMap-1.1.1/bin/drawgenemap";
 #my $cmd = $drawgenemap." --force_circular --infile $file_gb --outfile=$file_image1 --density=300";
 #print STDERR $cmd, "\n\n"; `$cmd`;
-
 my $python = "/biodata4/home/cliu/cpgview/bin/python";
+
+####if the input is an accession number from GenBank
+if ($file_in =~ /gb:/) {
+    $file_in =~ s/gb://;
+    my $cmd = "$python $Bin/helper/downloadGB.py $file_in $file_gb";
+    print STDERR $cmd, "\n\n"; `$cmd`;
+} else {
+    my $cmd = `cp $file_in $file_gb`; 
+    print STDERR $cmd, "\n\n"; `$cmd`;
+}
 #print STDERR $cmd, "\n\n"; `$cmd`;
 
 ####convert the genbank file to fasta file
@@ -67,7 +77,10 @@ print STDERR $cmd, "\n\n"; `$cmd`;
 my $cmd = "perl $Bin/ttviewer/cpgview_wrapper.pl $file_gb $projectid $workingdir";
 print STDERR $cmd, "\n\n"; `$cmd`;
 
-$file_image1 = $workingdir."/".$projectid."_circle.png";
+my $file_pdf1   = $workingdir."/".$projectid."_circle.pdf";
+my $file_pdf2   = $workingdir."/".$projectid."_cc01.pdf";
+my $file_pdf3   = $workingdir."/".$projectid."_cc02.pdf";
+my $file_image1 = $workingdir."/".$projectid."_circle.png";
 #$file_image1 = "/tmp/images_0.png";
 #$file_image1 = $file_image1.".jpg";
 
@@ -125,8 +138,12 @@ my $python = "/biodata4/home/cliu/drawgenemap/bin/python";
 $cmd = "$python $Bin/helper/drawgenemap_s3.py $file_image1 $file_image2 $file_image3 $file_image4";
 print STDERR $cmd, "\n\n"; `$cmd`;
 
-$cmd = "$python $Bin/helper/resize_image.py $file_image4 400 $file_image5";
+my $python = "/biodata4/home/cliu/cpgview/bin/python";
+$cmd = "$python $Bin/helper/image_postp.py $file_pdf1 $file_image3 $file_pdf2 $file_pdf3";
 print STDERR $cmd, "\n\n"; `$cmd`;
+
+#$cmd = "$python $Bin/helper/resize_image.py $file_image4 400 $file_image5";
+#print STDERR $cmd, "\n\n"; `$cmd`;
 
 &generateHTML($projectid, $file_html);
 
@@ -221,7 +238,8 @@ sub generateHTML {
     my $id       = shift;
     my $file_html = shift;
     
-    my $outfile1=$id."_circle.pdf";
+    #my $outfile1=$id."_circle.pdf";
+    my $outfile1=$id."_cc02.pdf";
     my $outfile2=$id."_cis.pdf";
     my $outfile3=$id."_trans.pdf";
     my $outfile4=$id."_circle.png";
@@ -242,11 +260,12 @@ sub generateHTML {
     <p>Your <a href=$outfile1 target=_blank>cpg circular graph</a></p>
     <p>Your <a href=$outfile2 target=_blank>cis-splicing genes</a></p>
     <p>Your <a href=$outfile3 target=_blank>trans-splicing genes</a></p>
-    <p>Your <a href=$outfile4 target=_blank>image01</a></p>
+    <!-- <p>Your <a href=$outfile4 target=_blank>image01</a></p>
     <p>Your <a href=$outfile5 target=_blank>image02</a></p>
     <p>Your <a href=$outfile6 target=_blank>image03</a></p>
     <p>Your <a href=$outfile7 target=_blank>image04</a></p>
     <p>Your <a href=$outfile8 target=_blank>image05</a></p>
+    -->
     </body>
     </html>
 REPORT
