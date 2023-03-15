@@ -6,4 +6,4 @@ In the realm of molecular biology and plant genetics, the study of chloroplast g
 
 To bridge this gap, we introduce Chloroplast Genome Viewer (CPGView), a user-friendly and comprehensive platform designed to visualize splicing genes within chloroplast genomes. CPGView offers a range of advanced features that allow researchers to not only examine gene distribution but also explore the detailed transcript structures with ease. The interactive interface and customizable options enable users to tailor their visualization experience, providing a more in-depth understanding of chloroplast genome organization and structure.
 
-To access CPGView and explore the powerful capabilities it offers for chloroplast genome visualization, please visit our website at: 
+To access CPGView and explore the powerful capabilities it offers for chloroplast genome visualization, please visit our website at: http://www.1kmpg.cn/cpgview/
